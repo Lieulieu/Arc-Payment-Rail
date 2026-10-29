@@ -21,6 +21,7 @@ export interface CallStreamState {
   connected: boolean;
   totalRevenue: number;   // raw USDC units (divide by 1e6 for display)
   uniquePayers: number;
+  retryNow: () => void;
 }
 
 const MAX_EVENTS = 100;
@@ -32,6 +33,7 @@ export function useCallStream(): CallStreamState {
   const [connected, setConnected] = useState(false);
   const seenIds = useRef<Set<string>>(new Set());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pollRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     let cancelled = false;
@@ -58,6 +60,11 @@ export function useCallStream(): CallStreamState {
       }
     }
 
+    pollRef.current = () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      void poll();
+    };
+
     void poll();
 
     return () => {
@@ -70,5 +77,5 @@ export function useCallStream(): CallStreamState {
   const totalRevenue = events.reduce((sum, ev) => sum + parseInt(ev.amount || "0", 10), 0);
   const uniquePayers = new Set(events.map((ev) => ev.payer)).size;
 
-  return { events, connected, totalRevenue, uniquePayers };
+  return { events, connected, totalRevenue, uniquePayers, retryNow: () => pollRef.current() };
 }

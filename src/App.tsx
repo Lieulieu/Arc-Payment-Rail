@@ -10,7 +10,8 @@ import { AgentLeaderboard } from "./components/AgentLeaderboard";
 import { TransactionHistory } from "./components/TransactionHistory";
 import { WalletExplorer } from "./components/WalletExplorer";
 import { Logo } from "./components/Logo";
-import { ServerOff, Terminal, LayoutDashboard, History, Trophy, Wallet } from "lucide-react";
+import { StartServerPanel } from "./components/StartServerPanel";
+import { ServerOff, LayoutDashboard, History, Trophy, Wallet } from "lucide-react";
 
 type Tab = "dashboard" | "history" | "leaderboard" | "wallets";
 
@@ -22,7 +23,7 @@ const TABS: { id: Tab; label: string; Icon: React.ElementType }[] = [
 ];
 
 export default function App() {
-  const { events, connected, totalRevenue, uniquePayers } = useCallStream();
+  const { events, connected, totalRevenue, uniquePayers, retryNow } = useCallStream();
   const [tab, setTab] = useState<Tab>("dashboard");
   const [historyPayer, setHistoryPayer] = useState("");
 
@@ -98,23 +99,10 @@ export default function App() {
               <StatsBar totalCalls={events.length} totalRevenue={totalRevenue} uniquePayers={uniquePayers} connected={connected} />
             </section>
 
-            {/* How it works / offline banner */}
+            {/* Start server panel / offline banner */}
             {!connected ? (
               <div id="start-server-banner" className="space-y-4">
-                <div className="rounded-xl bg-amber-500/5 border border-amber-500/20 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <ServerOff size={16} className="text-amber-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-semibold text-amber-300 mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Payment server is not running</p>
-                      <p className="text-xs text-white/40">Start the Express server in a terminal, then the dashboard will connect automatically.</p>
-                      <pre className="mt-3 rounded-lg bg-black/30 border border-white/10 px-4 py-3 text-[11px] text-blue-300 overflow-x-auto" style={{ fontFamily: "'JetBrains Mono', monospace" }}>bun run dev:server</pre>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Terminal size={13} className="text-white/30" />
-                    <span className="text-[11px] text-white/30">Reconnects automatically</span>
-                  </div>
-                </div>
+                <StartServerPanel onRetry={retryNow} />
                 <HowItWorks />
               </div>
             ) : null}
