@@ -1,0 +1,8 @@
+Organizer Disclaimer
+By clicking Continue, you confirm that you have read, understood, and agree to the organizer's requirements below. This applies to hackathon registration and Build submissions.
+
+Arc is an open L1 blockchain launched by Arc Network Services LLC ("Arc LLC") and operated by a permissioned validator set. Arc LLC provides software services only and does not offer regulated financial or advisory services. Arc has not been reviewed or approved by the New York State Department of Financial Services or any other regulatory authority.
+
+The Arc network is provided "as is" and "as available." Use of Arc involves inherent risks associated with blockchain technology, including smart contract vulnerabilities, network disruptions, and the absence of recourse for transaction errors or losses. The ability to transact on Arc depends on the ability to obtain and use USDC to pay gas fees. Neither Arc LLC nor any permissioned validator is responsible for the content, accuracy, legality, or functionality of third-party applications, protocols, or services built on or integrated with Arc. You are solely responsible for features or services you provide to users, including obtaining any necessary licenses or approvals and otherwise complying with applicable laws.
+
+All Arc features may be modified, delayed, or cancelled at any time without notice. Nothing herein constitutes a commitment, warranty, guarantee or legal, regulatory, tax, or investment advice.
