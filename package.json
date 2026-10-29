@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -n vite,server -c cyan,yellow \"vite\" \"bun run dev:server\"",
     "dev:server": "bun --env-file=.env server/index.ts",
     "dev:all": "concurrently -n vite,server -c cyan,yellow \"vite\" \"bun run dev:server\"",
     "deploy:self": "bun run ./scripts/self-deploy.ts",
