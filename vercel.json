@@ -1,0 +1,20 @@
+{
+  "buildCommand": "vite build",
+  "outputDirectory": "dist",
+  "framework": null,
+  "rewrites": [
+    { "source": "/health",              "destination": "/api/index" },
+    { "source": "/v1/:path*",           "destination": "/api/index" },
+    { "source": "/((?!api/).*)",        "destination": "/index.html" }
+  ],
+  "functions": {
+    "api/index.ts": {
+      "runtime": "@vercel/node@5"
+    }
+  },
+  "env": {
+    "VITE_SELLER_ADDRESS": "@vite_seller_address",
+    "PRICE_PER_CALL": "0.001",
+    "GATEWAY_FACILITATOR_URL": "https://gateway-api-testnet.circle.com"
+  }
+}
