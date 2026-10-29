@@ -11,10 +11,5 @@
     "api/index.ts": {
       "runtime": "@vercel/node@5"
     }
-  },
-  "env": {
-    "VITE_SELLER_ADDRESS": "@vite_seller_address",
-    "PRICE_PER_CALL": "0.001",
-    "GATEWAY_FACILITATOR_URL": "https://gateway-api-testnet.circle.com"
   }
 }
