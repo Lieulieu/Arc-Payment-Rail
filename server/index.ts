@@ -26,8 +26,8 @@ app.use(express.json());
 const gateway = createGatewayMiddleware({
   sellerAddress: SELLER_ADDRESS,
   facilitatorUrl: FACILITATOR_URL,
-  // Restrict to the correct Arc network based on facilitator URL
-  networks: IS_MAINNET ? ["arc"] : ["arcTestnet"],
+  // Restrict to the correct Arc network — facilitator returns eip155:<chainId> strings
+  networks: IS_MAINNET ? ["eip155:5042"] : ["eip155:5042002"],
 });
 
 // Extended request type carrying payment info injected by the middleware
