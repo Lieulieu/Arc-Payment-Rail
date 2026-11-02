@@ -49,7 +49,12 @@ export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
   );
 
   function changeSource(s: Source) { setSource(s); localStorage.setItem("lb-source", s); }
-  function changeNetwork(n: Network) { setNetwork(n); localStorage.setItem("lb-network", n); }
+  function changeNetwork(n: Network) {
+    setNetwork(n);
+    localStorage.setItem("lb-network", n);
+    // Mainnet live data is always empty (server memory resets) — auto-switch to onchain
+    if (n === "mainnet") { setSource("onchain"); localStorage.setItem("lb-source", "onchain"); }
+  }
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(0);
@@ -106,22 +111,28 @@ export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
 
         {/* Source toggle */}
         <div className="flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 p-0.5">
-          {(["onchain", "live"] as Source[]).map((s) => (
-            <button
-              key={s}
-              onClick={() => changeSource(s)}
-              className={[
-                "px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-colors",
-                source === s
-                  ? s === "onchain"
-                    ? "bg-blue-600/30 text-blue-300 border border-blue-500/30"
-                    : "bg-emerald-600/20 text-emerald-300 border border-emerald-500/20"
-                  : "text-white/30 hover:text-white/50",
-              ].join(" ")}
-            >
-              {s === "onchain" ? "⛓ Onchain" : "⚡ Live"}
-            </button>
-          ))}
+          {(["onchain", "live"] as Source[]).map((s) => {
+            const disabled = s === "live" && network === "mainnet";
+            return (
+              <button
+                key={s}
+                onClick={() => !disabled && changeSource(s)}
+                disabled={disabled}
+                title={disabled ? "Live mode unavailable on mainnet — use Onchain" : undefined}
+                className={[
+                  "px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-colors",
+                  disabled ? "opacity-30 cursor-not-allowed text-white/20" :
+                  source === s
+                    ? s === "onchain"
+                      ? "bg-blue-600/30 text-blue-300 border border-blue-500/30"
+                      : "bg-emerald-600/20 text-emerald-300 border border-emerald-500/20"
+                    : "text-white/30 hover:text-white/50",
+                ].join(" ")}
+              >
+                {s === "onchain" ? "⛓ Onchain" : "⚡ Live"}
+              </button>
+            );
+          })}
         </div>
 
         {/* Refresh button */}
