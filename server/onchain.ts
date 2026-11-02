@@ -34,7 +34,8 @@ if (!REGISTRY_TESTNET) throw new Error("VITE_REGISTRY_ADDRESS env var is require
 
 const ABI = parseAbi([
   "function getCallCount() external view returns (uint256)",
-  "function getCall(uint256 index) external view returns (address payer, uint40 timestamp, uint96 amount, bytes32 promptHash, bytes32 callId, address recorder)",
+  // Struct field order: payer, recorder, timestamp(uint40), amount(uint96), promptHash, callId
+  "function getCall(uint256 index) external view returns (address payer, address recorder, uint40 timestamp, uint96 amount, bytes32 promptHash, bytes32 callId)",
 ]);
 
 // ── Clients ───────────────────────────────────────────────────────────────────
@@ -82,7 +83,7 @@ export async function getOnchainRecords(
 ): Promise<OnchainRecord[]> {
   const now = Date.now();
   const cached = cache[network];
-  if (!forceRefresh && cached && cached.records.length > 0 && now - cached.time < CACHE_TTL_MS) {
+  if (!forceRefresh && cached && now - cached.time < CACHE_TTL_MS) {
     return cached.records;
   }
 
@@ -103,15 +104,16 @@ export async function getOnchainRecords(
         abi: ABI,
         functionName: "getCall",
         args: [BigInt(i)],
-      }) as readonly [string, number, bigint, string, string, string];
+      }) as readonly [string, string, bigint, bigint, string, string];
+      // Struct order: payer, recorder, timestamp(uint40), amount(uint96), promptHash, callId
 
       records.push({
         payer:      r[0],
-        timestamp:  Number(r[1]) * 1000,
-        amount:     r[2].toString(),
-        promptHash: r[3],
-        callId:     r[4],
-        recorder:   r[5],
+        recorder:   r[1],
+        timestamp:  Number(r[2]) * 1000,   // uint40 unix seconds → ms (safe: max ~year 36812)
+        amount:     r[3].toString(),        // uint96 USDC base units
+        promptHash: r[4],
+        callId:     r[5],
         index:      i,
       });
     } catch { /* skip */ }
