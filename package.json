@@ -8,6 +8,7 @@
     "dev:server": "bun --env-file=.env server/index.ts",
     "dev:all": "concurrently -n vite,server -c cyan,yellow \"vite\" \"bun run dev:server\"",
     "seed:registry": "bun run scripts/seed-registry.ts",
+    "seed:registry:mainnet": "bun run scripts/seed-registry-mainnet.ts",
     "deploy:self": "bun run ./scripts/self-deploy.ts",
     "compass:deploy": "bun run ./scripts/compass-deploy.ts",
     "fetch:abi": "bun run ./scripts/fetch-abi.ts",

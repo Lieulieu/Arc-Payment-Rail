@@ -11,6 +11,7 @@ This is the **project memory** - what Arc Studio remembers about building this a
 | Contract | Network | Address | Explorer |
 |---|---|---|---|
 | PaymentRegistry | Arc Testnet | `0x4c6f049a11393e7b0b4b9ba5fdbd173dad5698fe` | [View](https://explorer.testnet.arc.io/address/0x4c6f049a11393e7b0b4b9ba5fdbd173dad5698fe) |
+| PaymentRegistry | Arc Mainnet | `0x5e09794C98E89fc9fC8FDaA9bE51CE024f5BA697` | [View](https://explorer.arc.io/address/0x5e09794C98E89fc9fC8FDaA9bE51CE024f5BA697) |
 
 ## What This App Does
 
