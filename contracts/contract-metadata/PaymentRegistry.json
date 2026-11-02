@@ -1,0 +1,305 @@
+{
+  "contractAddress": "0x4c6f049a11393e7b0b4b9ba5fdbd173dad5698fe",
+  "network": "ARC-TESTNET",
+  "deployerWalletId": "3c2464b2-8369-52e2-a782-800bbeca5396",
+  "contract_code_path": "/home/user/app/contracts/PaymentRegistry.sol",
+  "contract_compiled_code_path": "/home/user/app/contracts/out/PaymentRegistry.sol/PaymentRegistry.json",
+  "contract_network_and_links": {
+    "Arc Testnet": "https://explorer.testnet.arc.io/address/0x4c6f049a11393e7b0b4b9ba5fdbd173dad5698fe"
+  },
+  "contract_deployments": [
+    {
+      "chain": "Arc Testnet",
+      "address": "0x4c6f049a11393e7b0b4b9ba5fdbd173dad5698fe",
+      "explorerUrl": "https://explorer.testnet.arc.io/address/0x4c6f049a11393e7b0b4b9ba5fdbd173dad5698fe",
+      "txHash": "0x93212a91a84de201fb6e15c324ce2ba8eecae4828d68d8763bd89166928b19f2",
+      "deployedAt": "2026-11-02T00:40:51.658Z"
+    }
+  ],
+  "abi": [
+    {
+      "type": "function",
+      "name": "getCall",
+      "inputs": [
+        {
+          "name": "index",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct PaymentRegistry.Record",
+          "components": [
+            {
+              "name": "payer",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "recorder",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "timestamp",
+              "type": "uint40",
+              "internalType": "uint40"
+            },
+            {
+              "name": "amount",
+              "type": "uint96",
+              "internalType": "uint96"
+            },
+            {
+              "name": "promptHash",
+              "type": "bytes32",
+              "internalType": "bytes32"
+            },
+            {
+              "name": "callId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getCallCount",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getCallsByPayer",
+      "inputs": [
+        {
+          "name": "payer",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "offset",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "limit",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "type": "tuple[]",
+          "internalType": "struct PaymentRegistry.Record[]",
+          "components": [
+            {
+              "name": "payer",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "recorder",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "timestamp",
+              "type": "uint40",
+              "internalType": "uint40"
+            },
+            {
+              "name": "amount",
+              "type": "uint96",
+              "internalType": "uint96"
+            },
+            {
+              "name": "promptHash",
+              "type": "bytes32",
+              "internalType": "bytes32"
+            },
+            {
+              "name": "callId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getRecord",
+      "inputs": [
+        {
+          "name": "callId",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct PaymentRegistry.Record",
+          "components": [
+            {
+              "name": "payer",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "recorder",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "timestamp",
+              "type": "uint40",
+              "internalType": "uint40"
+            },
+            {
+              "name": "amount",
+              "type": "uint96",
+              "internalType": "uint96"
+            },
+            {
+              "name": "promptHash",
+              "type": "bytes32",
+              "internalType": "bytes32"
+            },
+            {
+              "name": "callId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "recordCall",
+      "inputs": [
+        {
+          "name": "payer",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint96",
+          "internalType": "uint96"
+        },
+        {
+          "name": "promptHash",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "callId",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "event",
+      "name": "CallRecorded",
+      "inputs": [
+        {
+          "name": "payer",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "recorder",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        },
+        {
+          "name": "timestamp",
+          "type": "uint40",
+          "indexed": false,
+          "internalType": "uint40"
+        },
+        {
+          "name": "amount",
+          "type": "uint96",
+          "indexed": false,
+          "internalType": "uint96"
+        },
+        {
+          "name": "promptHash",
+          "type": "bytes32",
+          "indexed": false,
+          "internalType": "bytes32"
+        },
+        {
+          "name": "callId",
+          "type": "bytes32",
+          "indexed": true,
+          "internalType": "bytes32"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "error",
+      "name": "DuplicateCallId",
+      "inputs": [
+        {
+          "name": "callId",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "IndexOutOfBounds",
+      "inputs": [
+        {
+          "name": "index",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "ZeroAmount",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "ZeroCallId",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "ZeroPayer",
+      "inputs": []
+    }
+  ]
+}

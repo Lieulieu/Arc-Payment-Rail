@@ -6,6 +6,12 @@ This is the **project memory** - what Arc Studio remembers about building this a
 
 ---
 
+## Deployed Contracts
+
+| Contract | Network | Address | Explorer |
+|---|---|---|---|
+| PaymentRegistry | Arc Testnet | `0x4c6f049a11393e7b0b4b9ba5fdbd173dad5698fe` | [View](https://explorer.testnet.arc.io/address/0x4c6f049a11393e7b0b4b9ba5fdbd173dad5698fe) |
+
 ## What This App Does
 
 Paid AI inference API that charges agents $0.001 USDC per call using Circle Gateway Nanopayments and the x402 HTTP 402 protocol. No credit card or account needed — agents pay inline with each request. A live Arc Dark dashboard shows paid calls, revenue, and usage in real time.
