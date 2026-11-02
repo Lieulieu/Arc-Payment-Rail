@@ -55,7 +55,7 @@ export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
       try {
         const url = source === "onchain"
           ? `/api/v1/leaderboard/onchain?network=${network}`
-          : "/api/v1/leaderboard?limit=10";
+          : `/api/v1/leaderboard?limit=10&network=${network}`;
         const r = await fetch(url);
         if (!r.ok) return;
         const data = (await r.json()) as { entries: LeaderboardEntry[] };
@@ -84,8 +84,8 @@ export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
           Agent Leaderboard
         </span>
 
-        {/* Network dropdown — only shown in onchain mode */}
-        {source === "onchain" && (
+        {/* Network dropdown — shown in both modes */}
+        {(
           <select
             value={network}
             onChange={(e) => setNetwork(e.target.value as Network)}
@@ -98,7 +98,7 @@ export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
         )}
 
         {/* Source toggle */}
-        <div className={source === "onchain" ? "flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 p-0.5" : "ml-auto flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 p-0.5"}>
+        <div className="flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 p-0.5">
           {(["onchain", "live"] as Source[]).map((s) => (
             <button
               key={s}
@@ -133,7 +133,7 @@ export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
         <span className="text-[10px] text-white/30" style={{ fontFamily: "'DM Sans', sans-serif" }}>
           {source === "onchain"
             ? `${network === "mainnet" ? "Arc Mainnet" : "Arc Testnet"} · PaymentRegistry ${network === "mainnet" ? String(import.meta.env.VITE_REGISTRY_ADDRESS_MAINNET ?? "not deployed").slice(0, 10) : String(import.meta.env.VITE_REGISTRY_ADDRESS ?? "").slice(0, 10)}…`
-            : "Reading from server memory — resets on restart"}
+            : `${network === "mainnet" ? "Arc Mainnet" : "Arc Testnet"} · server memory — resets on restart`}
         </span>
         {lastRefresh > 0 && (
           <span className="ml-auto text-[10px] text-white/20">updated {timeAgo(lastRefresh)}</span>
