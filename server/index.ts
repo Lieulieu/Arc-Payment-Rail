@@ -15,6 +15,7 @@ import { SELLER_ADDRESS, PRICE_PER_CALL, PORT, FACILITATOR_URL } from "./env.js"
 import { runInference } from "./inference.js";
 import { recordCall, getRecentEvents, addSseClient, getHistory, getLeaderboard, getSpendChart } from "./events.js";
 import { getWallets, getNetworks, importWallets, parseCliTable } from "./wallets.js";
+import { getOnchainLeaderboard, getOnchainCallCount } from "./onchain.js";
 
 const app = express();
 app.use(cors());
@@ -102,10 +103,24 @@ app.get("/v1/history", (req, res) => {
   }));
 });
 
-// Leaderboard
+// Leaderboard (in-memory)
 app.get("/v1/leaderboard", (req, res) => {
   const limit = req.query.limit ? Number(req.query.limit) : 10;
   res.json({ entries: getLeaderboard(limit) });
+});
+
+// Leaderboard (onchain — reads directly from PaymentRegistry contract)
+app.get("/v1/leaderboard/onchain", (_req, res) => {
+  getOnchainLeaderboard(20)
+    .then((entries) => res.json({ entries, source: "onchain" }))
+    .catch((e: unknown) => res.status(500).json({ error: String(e) }));
+});
+
+// Onchain call count
+app.get("/v1/registry/count", (_req, res) => {
+  getOnchainCallCount()
+    .then((count) => res.json({ count, registry: process.env.VITE_REGISTRY_ADDRESS }))
+    .catch((e: unknown) => res.status(500).json({ error: String(e) }));
 });
 
 // Spend chart
@@ -141,6 +156,25 @@ app.post("/v1/wallets/import", (req, res) => {
   }
   const added = importWallets(parsed);
   res.json({ imported: parsed.length, added, wallets: parsed });
+});
+
+// Seed endpoint — injects a synthetic event into the in-memory store (used by seed-registry.ts)
+app.post("/v1/seed", (req, res) => {
+  const body = req.body as {
+    payer?: string; amount?: string; network?: string;
+    promptPreview?: string; tokens?: number; latency_ms?: number;
+  };
+  if (!body?.payer) { res.status(400).json({ error: "payer required" }); return; }
+  const ev = recordCall({
+    timestamp: Date.now(),
+    payer: body.payer,
+    amount: body.amount ?? "1000",
+    network: body.network ?? "Arc Testnet",
+    promptPreview: body.promptPreview ?? "",
+    tokens: body.tokens ?? 100,
+    latency_ms: body.latency_ms ?? 200,
+  });
+  res.json({ ok: true, id: ev.id });
 });
 
 // Free demo endpoint — no payment required, for browser preview
