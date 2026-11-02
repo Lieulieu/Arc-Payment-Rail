@@ -1,8 +1,11 @@
 /**
- * In-memory event store for paid API calls.
- * Fans out to all connected SSE clients so the dashboard updates live.
+ * Persistent event store for paid API calls.
+ * Events are written to .data/events.json so the leaderboard and history
+ * survive server restarts. SSE clients still get live push updates.
  */
 
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { join } from "path";
 import type { Response } from "express";
 
 export interface PaidCallEvent {
@@ -16,18 +19,40 @@ export interface PaidCallEvent {
   latency_ms: number;
 }
 
-// Keep last 200 events in memory
-const MAX_EVENTS = 200;
-const events: PaidCallEvent[] = [];
-const clients = new Set<Response>();
+// ── Persistence ───────────────────────────────────────────────────────────────
 
-let seq = 0;
+const DATA_DIR  = join(process.cwd(), ".data");
+const DATA_FILE = join(DATA_DIR, "events.json");
+const MAX_EVENTS = 500;
+
+function loadEvents(): PaidCallEvent[] {
+  try {
+    if (!existsSync(DATA_FILE)) return [];
+    const raw = readFileSync(DATA_FILE, "utf-8");
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch { return []; }
+}
+
+function persist(): void {
+  try {
+    if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
+    writeFileSync(DATA_FILE, JSON.stringify(events, null, 2), "utf-8");
+  } catch { /* best-effort */ }
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+
+const events: PaidCallEvent[] = loadEvents();
+const clients = new Set<Response>();
+let seq = events.length;
 
 export function recordCall(event: Omit<PaidCallEvent, "id">): PaidCallEvent {
   const id = `evt_${Date.now()}_${++seq}`;
   const full: PaidCallEvent = { id, ...event };
   events.unshift(full);
   if (events.length > MAX_EVENTS) events.pop();
+  persist();
   broadcast(full);
   return full;
 }
