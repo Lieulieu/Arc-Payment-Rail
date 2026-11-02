@@ -334,3 +334,17 @@
 {"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793586470727}
 {"level":"debug","message":"[vite] hot updated: /src/components/AgentLeaderboard.tsx","timestamp":1793586470790}
 {"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793586470790}
+{"level":"log","message":"[vite] server connection lost. Polling for restart...","timestamp":1793586951504}
+{"level":"debug","message":"[vite] hot updated: /src/components/AgentLeaderboard.tsx","timestamp":1793586961082}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793586961082}
+{"level":"debug","message":"[vite] hot updated: /src/components/AgentLeaderboard.tsx","timestamp":1793586963582}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793586963582}
+{"level":"debug","message":"[vite] connected.","timestamp":1793586963744}
+{"level":"debug","message":"[vite] hot updated: /src/components/AgentLeaderboard.tsx","timestamp":1793586965267}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793586965267}
+{"level":"debug","message":"[vite] hot updated: /src/components/AgentLeaderboard.tsx","timestamp":1793586965274}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793586965274}
+{"level":"debug","message":"[vite] hot updated: /src/components/AgentLeaderboard.tsx","timestamp":1793586968146}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793586968146}
+{"level":"debug","message":"[vite] hot updated: /src/components/AgentLeaderboard.tsx","timestamp":1793586968147}
+{"level":"debug","message":"[vite] hot updated: /src/index.css","timestamp":1793586968147}

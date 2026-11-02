@@ -41,8 +41,15 @@ interface AgentLeaderboardProps {
 }
 
 export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
-  const [source, setSource] = useState<Source>("onchain");
-  const [network, setNetwork] = useState<Network>("testnet");
+  const [source, setSource] = useState<Source>(() =>
+    (localStorage.getItem("lb-source") as Source | null) ?? "onchain"
+  );
+  const [network, setNetwork] = useState<Network>(() =>
+    (localStorage.getItem("lb-network") as Network | null) ?? "testnet"
+  );
+
+  function changeSource(s: Source) { setSource(s); localStorage.setItem("lb-source", s); }
+  function changeNetwork(n: Network) { setNetwork(n); localStorage.setItem("lb-network", n); }
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(0);
@@ -88,7 +95,7 @@ export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
         {(
           <select
             value={network}
-            onChange={(e) => setNetwork(e.target.value as Network)}
+            onChange={(e) => changeNetwork(e.target.value as Network)}
             className="ml-auto text-[10px] font-semibold bg-white/5 border border-white/10 text-white/60 rounded-md px-2 py-1 cursor-pointer hover:bg-white/10 transition-colors"
             style={{ fontFamily: "'Space Grotesk', sans-serif" }}
           >
@@ -102,7 +109,7 @@ export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
           {(["onchain", "live"] as Source[]).map((s) => (
             <button
               key={s}
-              onClick={() => setSource(s)}
+              onClick={() => changeSource(s)}
               className={[
                 "px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-colors",
                 source === s
@@ -119,7 +126,7 @@ export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
 
         {/* Refresh button */}
         <button
-          onClick={() => setSource((s) => s)} // re-triggers effect
+          onClick={() => { setLastRefresh(0); changeSource(source); }} // re-triggers effect
           className="p-1.5 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/5 transition-colors"
           title="Refresh"
         >
