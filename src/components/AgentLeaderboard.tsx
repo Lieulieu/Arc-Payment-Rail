@@ -34,6 +34,7 @@ function timeAgo(ts: number): string {
 const RANK_COLORS = ["text-amber-400", "text-slate-300", "text-amber-600"];
 
 type Source = "live" | "onchain";
+type Network = "testnet" | "mainnet";
 
 interface AgentLeaderboardProps {
   onSelectPayer?: (payer: string) => void;
@@ -41,6 +42,7 @@ interface AgentLeaderboardProps {
 
 export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
   const [source, setSource] = useState<Source>("onchain");
+  const [network, setNetwork] = useState<Network>("testnet");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(0);
@@ -52,7 +54,7 @@ export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
       setLoading(true);
       try {
         const url = source === "onchain"
-          ? "/api/v1/leaderboard/onchain"
+          ? `/api/v1/leaderboard/onchain?network=${network}`
           : "/api/v1/leaderboard?limit=10";
         const r = await fetch(url);
         if (!r.ok) return;
@@ -71,7 +73,7 @@ export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
     const interval = source === "live" ? 5000 : 20000;
     const id = setInterval(() => { void load(); }, interval);
     return () => { cancelled = true; clearInterval(id); };
-  }, [source]);
+  }, [source, network]);
 
   return (
     <div className="rounded-xl bg-white/5 border border-white/10 overflow-hidden">
@@ -82,8 +84,21 @@ export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
           Agent Leaderboard
         </span>
 
+        {/* Network dropdown — only shown in onchain mode */}
+        {source === "onchain" && (
+          <select
+            value={network}
+            onChange={(e) => setNetwork(e.target.value as Network)}
+            className="ml-auto text-[10px] font-semibold bg-white/5 border border-white/10 text-white/60 rounded-md px-2 py-1 cursor-pointer hover:bg-white/10 transition-colors"
+            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+          >
+            <option value="testnet">Arc Testnet</option>
+            <option value="mainnet">Arc Mainnet</option>
+          </select>
+        )}
+
         {/* Source toggle */}
-        <div className="ml-auto flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 p-0.5">
+        <div className={source === "onchain" ? "flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 p-0.5" : "ml-auto flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 p-0.5"}>
           {(["onchain", "live"] as Source[]).map((s) => (
             <button
               key={s}
@@ -117,7 +132,7 @@ export function AgentLeaderboard({ onSelectPayer }: AgentLeaderboardProps) {
         <Link size={10} className={source === "onchain" ? "text-blue-400" : "text-emerald-400"} />
         <span className="text-[10px] text-white/30" style={{ fontFamily: "'DM Sans', sans-serif" }}>
           {source === "onchain"
-            ? `Reading from PaymentRegistry contract · ${String(import.meta.env.VITE_REGISTRY_ADDRESS ?? "").slice(0, 10)}…`
+            ? `${network === "mainnet" ? "Arc Mainnet" : "Arc Testnet"} · PaymentRegistry ${network === "mainnet" ? String(import.meta.env.VITE_REGISTRY_ADDRESS_MAINNET ?? "not deployed").slice(0, 10) : String(import.meta.env.VITE_REGISTRY_ADDRESS ?? "").slice(0, 10)}…`
             : "Reading from server memory — resets on restart"}
         </span>
         {lastRefresh > 0 && (

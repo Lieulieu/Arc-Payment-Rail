@@ -1,50 +1,63 @@
 /**
- * onchain.ts — reads PaymentRegistry records from Arc Testnet via viem.
- * RPC: uses RPC_PROXY_BASE_URL / RPC_PROXY_TOKEN if set, else falls back to
- *      the public Arc Testnet RPC from the onchain-facts registry.
- * Contract address: VITE_REGISTRY_ADDRESS env var (set in .env).
+ * onchain.ts — reads PaymentRegistry records from Arc Testnet or Arc Mainnet via viem.
+ * Supports network param: "testnet" | "mainnet"
  */
 
 import { createPublicClient, http, parseAbi, defineChain } from "viem";
 
-// ── RPC URL ───────────────────────────────────────────────────────────────────
-// Arc Testnet chain ID is 5042002. The proxy covers it when configured.
-const ARC_TESTNET_CHAIN_ID = 5042002;
-const PROXY_BASE  = process.env.RPC_PROXY_BASE_URL;
-const PROXY_TOKEN = process.env.RPC_PROXY_TOKEN;
-const PROXY_CHAINS = (process.env.RPC_PROXY_CHAINS ?? "").split(",").map((s) => s.trim());
+// ── Chain definitions ─────────────────────────────────────────────────────────
 
-const rpcUrl =
-  PROXY_BASE && PROXY_TOKEN && PROXY_CHAINS.includes(String(ARC_TESTNET_CHAIN_ID))
-    ? `${PROXY_BASE}/api/rpc/${ARC_TESTNET_CHAIN_ID}?_rpc_token=${PROXY_TOKEN}`
-    : "https://rpc.testnet.arc.io"; // arc-studio-allow-onchain-literal
-
-// ── Contract address ──────────────────────────────────────────────────────────
-const REGISTRY = (process.env.VITE_REGISTRY_ADDRESS ?? "") as `0x${string}`;
-if (!REGISTRY) throw new Error("VITE_REGISTRY_ADDRESS env var is required");
-
-// ── Chain definition ──────────────────────────────────────────────────────────
 const arcTestnet = defineChain({
-  id: ARC_TESTNET_CHAIN_ID,
+  id: 5042002,
   name: "Arc Testnet",
   nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
-  rpcUrls: { default: { http: [rpcUrl] } },
+  rpcUrls: { default: { http: ["https://rpc.testnet.arc.io"] } }, // arc-studio-allow-onchain-literal
   blockExplorers: { default: { name: "Arc Explorer", url: "https://explorer.testnet.arc.io" } }, // arc-studio-allow-onchain-literal
 });
+
+const arcMainnet = defineChain({
+  id: 5042,
+  name: "Arc",
+  nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
+  rpcUrls: { default: { http: ["https://rpc.mainnet.arc.io"] } }, // arc-studio-allow-onchain-literal
+  blockExplorers: { default: { name: "Arc Explorer", url: "https://explorer.arc.io" } }, // arc-studio-allow-onchain-literal
+});
+
+// ── Registry addresses ────────────────────────────────────────────────────────
+
+const REGISTRY_TESTNET = (process.env.VITE_REGISTRY_ADDRESS ?? "") as `0x${string}`;
+const REGISTRY_MAINNET = (process.env.VITE_REGISTRY_ADDRESS_MAINNET ?? "") as `0x${string}`;
+
+if (!REGISTRY_TESTNET) throw new Error("VITE_REGISTRY_ADDRESS env var is required");
+
+// ── ABI ───────────────────────────────────────────────────────────────────────
 
 const ABI = parseAbi([
   "function getCallCount() external view returns (uint256)",
   "function getCall(uint256 index) external view returns (address payer, uint40 timestamp, uint96 amount, bytes32 promptHash, bytes32 callId, address recorder)",
 ]);
 
-const pub = createPublicClient({ chain: arcTestnet, transport: http() });
+// ── Clients ───────────────────────────────────────────────────────────────────
+
+const pubTestnet = createPublicClient({ chain: arcTestnet, transport: http() });
+const pubMainnet = createPublicClient({ chain: arcMainnet, transport: http() });
+
+function getClient(network: "testnet" | "mainnet") {
+  return network === "mainnet" ? pubMainnet : pubTestnet;
+}
+
+function getRegistry(network: "testnet" | "mainnet"): `0x${string}` {
+  const addr = network === "mainnet" ? REGISTRY_MAINNET : REGISTRY_TESTNET;
+  if (!addr) throw new Error(`No registry address configured for ${network}`);
+  return addr;
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface OnchainRecord {
   payer: string;
-  timestamp: number;   // unix ms
-  amount: string;      // raw USDC units (uint96)
+  timestamp: number;
+  amount: string;
   promptHash: string;
   callId: string;
   recorder: string;
@@ -53,34 +66,40 @@ export interface OnchainRecord {
 
 export interface OnchainLeaderboardEntry {
   payer: string;
-  totalAmount: number; // raw USDC units
+  totalAmount: number;
   callCount: number;
-  lastSeen: number;    // unix ms
+  lastSeen: number;
 }
 
-// ── Cache (15 s TTL) ──────────────────────────────────────────────────────────
-let cachedRecords: OnchainRecord[] = [];
-let cacheTime = 0;
+// ── Cache (15s TTL per network) ───────────────────────────────────────────────
+
+const cache: Record<string, { records: OnchainRecord[]; time: number }> = {};
 const CACHE_TTL_MS = 15_000;
 
-export async function getOnchainRecords(forceRefresh = false): Promise<OnchainRecord[]> {
+export async function getOnchainRecords(
+  network: "testnet" | "mainnet" = "testnet",
+  forceRefresh = false,
+): Promise<OnchainRecord[]> {
   const now = Date.now();
-  if (!forceRefresh && cachedRecords.length > 0 && now - cacheTime < CACHE_TTL_MS) {
-    return cachedRecords;
+  const cached = cache[network];
+  if (!forceRefresh && cached && cached.records.length > 0 && now - cached.time < CACHE_TTL_MS) {
+    return cached.records;
   }
 
-  const count = await pub.readContract({ address: REGISTRY, abi: ABI, functionName: "getCallCount" });
-  const total = Number(count);
-  if (total === 0) return [];
+  const pub = getClient(network);
+  const registry = getRegistry(network);
 
-  // Fetch the most recent 100 records (descending by index)
+  const count = await pub.readContract({ address: registry, abi: ABI, functionName: "getCallCount" });
+  const total = Number(count);
+  if (total === 0) { cache[network] = { records: [], time: now }; return []; }
+
   const limit = Math.min(total, 100);
   const records: OnchainRecord[] = [];
 
   for (let i = total - 1; i >= total - limit; i--) {
     try {
       const r = await pub.readContract({
-        address: REGISTRY,
+        address: registry,
         abi: ABI,
         functionName: "getCall",
         args: [BigInt(i)],
@@ -88,25 +107,25 @@ export async function getOnchainRecords(forceRefresh = false): Promise<OnchainRe
 
       records.push({
         payer:      r[0],
-        timestamp:  Number(r[1]) * 1000, // contract stores unix seconds → ms
+        timestamp:  Number(r[1]) * 1000,
         amount:     r[2].toString(),
         promptHash: r[3],
         callId:     r[4],
         recorder:   r[5],
         index:      i,
       });
-    } catch {
-      // skip any individual failed read
-    }
+    } catch { /* skip */ }
   }
 
-  cachedRecords = records;
-  cacheTime = now;
+  cache[network] = { records, time: now };
   return records;
 }
 
-export async function getOnchainLeaderboard(limit = 10): Promise<OnchainLeaderboardEntry[]> {
-  const records = await getOnchainRecords();
+export async function getOnchainLeaderboard(
+  limit = 10,
+  network: "testnet" | "mainnet" = "testnet",
+): Promise<OnchainLeaderboardEntry[]> {
+  const records = await getOnchainRecords(network);
   const map = new Map<string, OnchainLeaderboardEntry>();
 
   for (const r of records) {
@@ -127,7 +146,9 @@ export async function getOnchainLeaderboard(limit = 10): Promise<OnchainLeaderbo
     .slice(0, limit);
 }
 
-export async function getOnchainCallCount(): Promise<number> {
-  const count = await pub.readContract({ address: REGISTRY, abi: ABI, functionName: "getCallCount" });
+export async function getOnchainCallCount(network: "testnet" | "mainnet" = "testnet"): Promise<number> {
+  const pub = getClient(network);
+  const registry = getRegistry(network);
+  const count = await pub.readContract({ address: registry, abi: ABI, functionName: "getCallCount" });
   return Number(count);
 }

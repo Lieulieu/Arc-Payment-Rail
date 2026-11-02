@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { Wallet, ChevronDown, Copy, Check, ExternalLink, Plus, X } from "lucide-react";
+import { Wallet, ChevronDown, Copy, Check, ExternalLink, Plus, X, Key } from "lucide-react";
 import { buildAddressExplorerUrl, ONCHAIN_CHAINS } from "@/onchain-facts";
 
 interface AgentWallet {
@@ -57,6 +57,23 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+interface EoaEntry {
+  address: string;
+  label: string;
+  network: "testnet" | "mainnet";
+}
+
+const EOA_STORAGE_KEY = "arc-payment-rail-eoa-wallets";
+
+function loadEoas(): EoaEntry[] {
+  try { return JSON.parse(localStorage.getItem(EOA_STORAGE_KEY) ?? "[]") as EoaEntry[]; }
+  catch { return []; }
+}
+
+function saveEoas(eoas: EoaEntry[]) {
+  localStorage.setItem(EOA_STORAGE_KEY, JSON.stringify(eoas));
+}
+
 export function WalletExplorer() {
   const [data, setData] = useState<WalletData>({ wallets: [], networks: [] });
   const [network, setNetwork] = useState<"all" | "testnet" | "mainnet">("all");
@@ -68,6 +85,27 @@ export function WalletExplorer() {
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // EOA wallet state
+  const [eoas, setEoas] = useState<EoaEntry[]>(() => loadEoas());
+  const [showAddEoa, setShowAddEoa] = useState(false);
+  const [newEoaAddr, setNewEoaAddr] = useState("");
+  const [newEoaLabel, setNewEoaLabel] = useState("");
+  const [newEoaNet, setNewEoaNet] = useState<"testnet" | "mainnet">("testnet");
+
+  function addEoa() {
+    if (!newEoaAddr.trim() || !/^0x[a-fA-F0-9]{40}$/.test(newEoaAddr.trim())) return;
+    const updated = [...eoas, { address: newEoaAddr.trim(), label: newEoaLabel.trim() || "EOA", network: newEoaNet }];
+    setEoas(updated);
+    saveEoas(updated);
+    setNewEoaAddr(""); setNewEoaLabel(""); setShowAddEoa(false);
+  }
+
+  function removeEoa(idx: number) {
+    const updated = eoas.filter((_, i) => i !== idx);
+    setEoas(updated);
+    saveEoas(updated);
+  }
 
   function buildQuery() {
     const p = new URLSearchParams();
@@ -347,6 +385,123 @@ export function WalletExplorer() {
           </div>
         </div>
       )}
+
+      {/* EOA Wallets section */}
+      <div className="rounded-xl bg-white/5 border border-white/10 overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-4 border-b border-white/10">
+          <Key size={13} className="text-amber-400 shrink-0" />
+          <span className="text-sm font-semibold text-white/80" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            EOA Wallets
+          </span>
+          <span className="text-[10px] text-white/30 ml-1">backing keys for Gateway deposits</span>
+          <button
+            onClick={() => setShowAddEoa((s) => !s)}
+            className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600/10 border border-amber-500/20 text-amber-300 text-[11px] font-semibold hover:bg-amber-600/20 transition-colors"
+          >
+            {showAddEoa ? <X size={11} /> : <Plus size={11} />}
+            {showAddEoa ? "Cancel" : "Add EOA"}
+          </button>
+        </div>
+
+        {/* Add EOA form */}
+        {showAddEoa && (
+          <div className="px-5 py-4 border-b border-white/5 bg-white/[0.02] space-y-3">
+            <div className="flex flex-wrap gap-3">
+              <input
+                value={newEoaAddr}
+                onChange={(e) => setNewEoaAddr(e.target.value)}
+                placeholder="0x… (40-char hex address)"
+                className="flex-1 min-w-[200px] rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-xs text-white/70 placeholder:text-white/20 focus:outline-none focus:border-amber-500/40"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              />
+              <input
+                value={newEoaLabel}
+                onChange={(e) => setNewEoaLabel(e.target.value)}
+                placeholder="Label (e.g. Gateway backing EOA)"
+                className="flex-1 min-w-[180px] rounded-lg bg-black/30 border border-white/10 px-3 py-2 text-xs text-white/70 placeholder:text-white/20 focus:outline-none focus:border-amber-500/40"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
+              />
+              <select
+                value={newEoaNet}
+                onChange={(e) => setNewEoaNet(e.target.value as "testnet" | "mainnet")}
+                className="rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-xs text-white/60 focus:outline-none cursor-pointer"
+              >
+                <option value="testnet">Testnet</option>
+                <option value="mainnet">Mainnet</option>
+              </select>
+              <button
+                onClick={addEoa}
+                disabled={!/^0x[a-fA-F0-9]{40}$/.test(newEoaAddr.trim())}
+                className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold text-white transition-colors"
+              >
+                Add
+              </button>
+            </div>
+            <p className="text-[10px] text-white/30" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+              Found when running <code className="text-amber-300/70">circle gateway deposit … --method direct</code> — shown as "Resolving backing EOA…"
+            </p>
+          </div>
+        )}
+
+        {/* EOA list */}
+        {eoas.length === 0 ? (
+          <div className="py-8 text-center text-white/25 text-xs" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+            No EOA wallets added yet — click "Add EOA" and paste the address shown by <code className="text-amber-300/50">circle gateway deposit</code>
+          </div>
+        ) : (
+          <div className="divide-y divide-white/5">
+            {eoas.map((e, idx) => {
+              const chainId = e.network === "testnet" ? 5042002 : 5042;
+              const url = buildAddressExplorerUrl(chainId, e.address);
+              return (
+                <div key={idx} className="flex items-center gap-3 px-5 py-3 hover:bg-white/5 transition-colors">
+                  <div className="w-6 h-6 rounded-full bg-amber-600/15 border border-amber-500/20 shrink-0 flex items-center justify-center">
+                    <Key size={10} className="text-amber-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="text-xs tabular-nums text-amber-300/80 truncate"
+                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                        title={e.address}
+                      >
+                        {shortenAddress(e.address)}
+                      </span>
+                      <CopyButton text={e.address} />
+                      {url && (
+                        <a href={url} target="_blank" rel="noopener noreferrer"
+                          className="p-1 rounded hover:bg-white/10 transition-colors text-white/30 hover:text-white/60"
+                        >
+                          <ExternalLink size={11} />
+                        </a>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-white/30 mt-0.5" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                      {e.label}
+                    </p>
+                  </div>
+                  <span className={[
+                    "text-[10px] font-semibold px-2 py-0.5 rounded-full border",
+                    e.network === "testnet"
+                      ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                      : "bg-blue-500/10 text-blue-300 border-blue-500/20",
+                  ].join(" ")}>
+                    {e.network === "testnet" ? "Testnet" : "Mainnet"}
+                  </span>
+                  <button
+                    onClick={() => removeEoa(idx)}
+                    className="p-1 rounded hover:bg-white/10 text-white/20 hover:text-red-400 transition-colors"
+                    title="Remove"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }

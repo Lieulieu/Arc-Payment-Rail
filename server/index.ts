@@ -110,16 +110,18 @@ app.get("/v1/leaderboard", (req, res) => {
 });
 
 // Leaderboard (onchain — reads directly from PaymentRegistry contract)
-app.get("/v1/leaderboard/onchain", (_req, res) => {
-  getOnchainLeaderboard(20)
-    .then((entries) => res.json({ entries, source: "onchain" }))
+app.get("/v1/leaderboard/onchain", (req, res) => {
+  const network = req.query.network === "mainnet" ? "mainnet" : "testnet";
+  getOnchainLeaderboard(20, network)
+    .then((entries) => res.json({ entries, source: "onchain", network }))
     .catch((e: unknown) => res.status(500).json({ error: String(e) }));
 });
 
 // Onchain call count
-app.get("/v1/registry/count", (_req, res) => {
-  getOnchainCallCount()
-    .then((count) => res.json({ count, registry: process.env.VITE_REGISTRY_ADDRESS }))
+app.get("/v1/registry/count", (req, res) => {
+  const network = req.query.network === "mainnet" ? "mainnet" : "testnet";
+  getOnchainCallCount(network)
+    .then((count) => res.json({ count, network, registry: network === "mainnet" ? process.env.VITE_REGISTRY_ADDRESS_MAINNET : process.env.VITE_REGISTRY_ADDRESS }))
     .catch((e: unknown) => res.status(500).json({ error: String(e) }));
 });
 
