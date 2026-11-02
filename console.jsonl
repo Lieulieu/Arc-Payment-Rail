@@ -398,3 +398,14 @@
 {"level":"log","message":"[vite] server connection lost. Polling for restart...","timestamp":1793590460312}
 {"level":"debug","message":"[vite] connected.","timestamp":1793590464615}
 {"level":"debug","message":"[vite] connected.","timestamp":1793590472337}
+{"level":"debug","message":"[vite] connected.","timestamp":1793590506093}
+{"level":"log","message":"[vite] server connection lost. Polling for restart...","timestamp":1793590553804}
+{"level":"log","message":"[vite] server connection lost. Polling for restart...","timestamp":1793590553811}
+{"level":"debug","message":"[vite] connected.","timestamp":1793590558914}
+{"level":"debug","message":"[vite] connected.","timestamp":1793590559409}
+{"level":"debug","message":"[vite] connected.","timestamp":1793590588248}
+{"level":"debug","message":"[vite] connected.","timestamp":1793590588936}
+{"level":"log","message":"[vite] server connection lost. Polling for restart...","timestamp":1793590623188}
+{"level":"debug","message":"[vite] connected.","timestamp":1793590628772}
+{"level":"debug","message":"[vite] connected.","timestamp":1793590629562}
+{"level":"debug","message":"[vite] connected.","timestamp":1793590651226}

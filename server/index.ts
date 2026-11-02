@@ -26,8 +26,8 @@ app.use(express.json());
 const gateway = createGatewayMiddleware({
   sellerAddress: SELLER_ADDRESS,
   facilitatorUrl: FACILITATOR_URL,
-  // Arc mainnet chainId = 5042; Arc Testnet = 5042002
-  ...(IS_MAINNET ? { chainId: 5042 } : { chainId: 5042002 }),
+  // Restrict to the correct Arc network based on facilitator URL
+  networks: IS_MAINNET ? ["arc"] : ["arcTestnet"],
 });
 
 // Extended request type carrying payment info injected by the middleware
