@@ -13,4 +13,10 @@ export const SELLER_ADDRESS = require("VITE_SELLER_ADDRESS") as `0x${string}`;
 export const PRICE_PER_CALL = process.env.PRICE_PER_CALL ?? "0.001";
 export const PORT = parseInt(process.env.SERVER_PORT ?? "3001", 10);
 export const FACILITATOR_URL =
-  process.env.FACILITATOR_URL ?? "https://gateway-api-testnet.circle.com";
+  process.env.GATEWAY_FACILITATOR_URL ??
+  process.env.FACILITATOR_URL ??
+  "https://gateway-api-testnet.circle.com";
+
+// "mainnet" when GATEWAY_FACILITATOR_URL points at the production facilitator
+export const IS_MAINNET = FACILITATOR_URL.includes("gateway-api.circle.com") &&
+  !FACILITATOR_URL.includes("testnet");

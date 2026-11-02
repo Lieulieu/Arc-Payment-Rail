@@ -11,7 +11,7 @@
 import express from "express";
 import cors from "cors";
 import { createGatewayMiddleware } from "@circle-fin/x402-batching/server";
-import { SELLER_ADDRESS, PRICE_PER_CALL, PORT, FACILITATOR_URL } from "./env.js";
+import { SELLER_ADDRESS, PRICE_PER_CALL, PORT, FACILITATOR_URL, IS_MAINNET } from "./env.js";
 import { runInference } from "./inference.js";
 import { recordCall, getRecentEvents, addSseClient, getHistory, getLeaderboard, getSpendChart } from "./events.js";
 import { getWallets, getNetworks, importWallets, parseCliTable } from "./wallets.js";
@@ -26,6 +26,8 @@ app.use(express.json());
 const gateway = createGatewayMiddleware({
   sellerAddress: SELLER_ADDRESS,
   facilitatorUrl: FACILITATOR_URL,
+  // Arc mainnet chainId = 5042; Arc Testnet = 5042002
+  ...(IS_MAINNET ? { chainId: 5042 } : { chainId: 5042002 }),
 });
 
 // Extended request type carrying payment info injected by the middleware
@@ -201,4 +203,5 @@ app.listen(PORT, () => {
   console.log(`[payment-rail] Seller: ${SELLER_ADDRESS}`);
   console.log(`[payment-rail] Price:  $${PRICE_PER_CALL} USDC per call`);
   console.log(`[payment-rail] Facilitator: ${FACILITATOR_URL}`);
+  console.log(`[payment-rail] Network:     ${IS_MAINNET ? "Arc Mainnet (chainId 5042)" : "Arc Testnet (chainId 5042002)"}`);
 });
